@@ -8,9 +8,11 @@ import json
 
 def get_items():
     #gets items from Zachs lol server for time series analysis project
-    # if os.path.exists('items.csv'):
-    #     print('Reading items from local csv')
-    # return pd.read_csv('items.csv')
+    print('Checking for existing items.csv...')
+    if os.path.exists('items.csv'):
+        print('Reading items from local csv...\n')
+        return pd.read_csv('items.csv')
+    print('csv does not exist... pulling new data to create csv...')
     base_url = 'https://python.zach.lol'
     response = requests.get('https://python.zach.lol/api/v1/items')
     data = response.json()
@@ -23,12 +25,6 @@ def get_items():
             break
         response = requests.get(base_url + data['payload']['next_page'])
         data = response.json()
-    return items
-
-def all_items():
-    #triggers items function, names the df and writes to csv
-    print('getting items...')
-    items = get_items()
     print('writing items.csv...')
     items.to_csv('items.csv', index=False)
     print('finished writing items.csv.  Part 1 done.\n')
@@ -39,18 +35,14 @@ def all_items():
 
 def get_stores():
     # #gets stores from Zachs lol server for time series analysis project
-    # if os.path.exists('stores.csv'):
-    #     print('Reading stores from local csv')
-    # return pd.read_csv('stores.csv')
+    print('Checking for existing stores.csv...')
+    if os.path.exists('stores.csv'):
+        print('Reading stores from local csv...\n')
+        return pd.read_csv('stores.csv')
+    print('csv does not exist... pulling new data to create csv...')
     response = requests.get('https://python.zach.lol/api/v1/stores')
     data = response.json()
     stores = pd.DataFrame(data['payload']['stores'])
-    return stores
-
-def all_stores():
-    #triggers items function, names the df and writes to csv
-    print('getting stores...')
-    stores = get_stores()
     print('writing stores.csv...')
     stores.to_csv('stores.csv', index=False)
     print('finished writing stores.csv.  Part 2 done.\n')
@@ -61,9 +53,11 @@ def all_stores():
 
 def get_sales():
     #gets sales from Zachs lol server for time series analysis project
-    # if os.path.exists('sales.csv'):
-    #     print('Reading sales from local csv')
-    # return pd.read_csv('sales.csv')
+    print('Checking for existing sales.csv...')
+    if os.path.exists('sales.csv'):
+        print('Reading sales from local csv...\n')
+        return pd.read_csv('sales.csv')
+    print('csv does not exist... pulling new data to create csv...')
     base_url = 'https://python.zach.lol'
     response = requests.get('https://python.zach.lol/api/v1/sales')
     data = response.json()
@@ -76,12 +70,6 @@ def get_sales():
             break
         response = requests.get(base_url + data['payload']['next_page'])
         data = response.json()
-    return sales
-
-def all_sales():
-    #triggers sales function, names the df and writes to csv
-    print('getting sales...')
-    sales = get_sales()
     print('writing sales.csv...')
     sales.to_csv('sales.csv', index=False)
     print('finished writing sales.csv.  Part 3 done.\n')
@@ -91,19 +79,40 @@ def all_sales():
     return sales
 
 def tsa_acquire_all():
-    items = all_items()
-    stores = all_stores()
-    sales = all_sales()
+    items = get_items()
+    stores = get_stores()
+    sales = get_sales()
     sales.rename(columns={'store': 'store_id', 'item': 'item_id'}, inplace=True)
     df = pd.merge(sales, items, on='item_id')
     df = pd.merge(df, stores, on='store_id')
-    print('writing final df.csv...')
+    print('Writing final df.csv...\n')
     df.to_csv('df.csv', index=False)
-    print('finished writing final df.csv.  Final df done.\n')
-    print('HEADS UP: finished all tsa acquire.  Full Stop!')
+    print('Finished writing final df.csv.  Final df done.\n')
+    print('HEADS UP: finished all tsa acquire.  Full Stop!\n')
+    print('Final raw df now ready to begin data preparations.\n')
+    # print('Heres a look at the tail of the final df:\n')
+    # print(df.tail())
+    print('\n')
     return df
 
-# tsa_acquire_all()
+#tsa_acquire_all()
+
+# The code below inspires by Michael P. Moran's missing_vals_df().
+def missing_values_col(df):
+	"""
+	Write or use a previously written function to return the
+	total missing values and the percent missing values by column.
+	"""
+	null_count = df.isnull().sum()
+	null_percentage = (null_count / df.shape[0]) * 100
+	empty_count = pd.Series(((df == ' ') | (df == '')).sum())
+	empty_percentage = (empty_count / df.shape[0]) * 100
+	nan_count = pd.Series(((df == 'nan') | (df == 'NaN')).sum())
+	nan_percentage = (nan_count / df.shape[0]) * 100
+	return pd.DataFrame({'num_missing': null_count, 'missing_percentage': null_percentage,
+	                     'num_empty': empty_count, 'empty_percentage': empty_percentage,
+	                     'nan_count': nan_count, 'nan_percentage': nan_percentage})
+
 
 def peekatdata(df):
     print("\n \n SHAPE:")
@@ -127,16 +136,3 @@ def peekatdata(df):
 
     print('\n \n TAIL:' )
     print(df.tail(5))
-
-
-
-# ======================================================================== #
-#                       DELETE BELOW LATER IF NOT USED                     #
-# ======================================================================== #
-
-# def tsa_acquire_all():
-#     all_items()
-#     all_stores()
-#     all_sales()
-#     print('HEADS UP: finished all tsa acquire.  Full Stop!')
-
