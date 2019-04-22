@@ -5,19 +5,42 @@ from sklearn.preprocessing import MinMaxScaler
 
 def time_convert(df):
     datetime_format = '%a, %d %b %Y %H:%M:%S %Z'
+    df['sale_date_index_col'] = pd.to_datetime(df.sale_date,format=datetime_format)
     df['sale_date'] = pd.to_datetime(df.sale_date,format=datetime_format)
     return df
 
+def add_date_parts(df):
+    # year, quarter, month, day of month, day of week, weekend vs. weekday
+    df['year'] = df.sale_date.dt.year
+    df['quarter'] = df.sale_date.dt.quarter
+    df['month'] = df.sale_date.dt.month
+    df['day'] = df.sale_date.dt.day
+    df['weekday'] = df.sale_date.dt.day_name().str[:3]
+    df['is_weekend'] = df.weekday.str.startswith('S')
+    return df
+
+def improve_sales_data(df):
+    df['sale_total'] = df.sale_amount * df.item_price
+    return df.rename(columns={'sale_amount': 'quantity'})
+
 def new_index(df):
-    df = df.set_index('sale_date')
+    df = df.set_index('sale_date_index_col')
     return df
 
 def data_prepped(df):
+    print('Please wait for df preparations to process...\n')
     df = time_convert(df)
+    print('Date/time conversion in process...')
+    df = add_date_parts(df)
+    print('Additional data parts are being added...')
+    df = improve_sales_data(df)
+    print('Executing "improve_sales_data" function...')
+    print('Renaming "sale_amount" field to "quantity"...')
     df = new_index(df)
-    print('Please wait for df preparations to process...')
+    print('New index is being set with the date/time field...\n')
+    print('New prepped df is ready for use.\n')
+
     return df
-    
 
 #data_prepped()
 

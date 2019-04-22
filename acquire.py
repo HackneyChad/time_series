@@ -79,6 +79,11 @@ def get_sales():
     return sales
 
 def tsa_acquire_all():
+# #gets final df from my harddrive for time series analysis project
+# print('Checking for existing df.csv...')
+# if os.path.exists('df.csv'):
+#     print('Reading sales from local csv...\n')
+#     return pd.read_csv('df.csv')
     items = get_items()
     stores = get_stores()
     sales = get_sales()
